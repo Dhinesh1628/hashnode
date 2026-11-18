@@ -13,6 +13,7 @@ export function userRoutes(env) {
   router.get('/me/bookmarks', auth, reactions.myBookmarks);
   router.get('/me/dashboard', auth, users.dashboard);
 
+  router.get('/suggested', optionalAuth(env), users.suggested); // before '/:id'
   router.get('/:id', optionalAuth(env), users.profile);
   router.get('/:id/followers', users.followers);
   router.get('/:id/following', users.following);

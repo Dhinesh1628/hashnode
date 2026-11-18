@@ -45,7 +45,7 @@ so there's nothing else to configure. Set `API_URL` to use another API address.
 
 | URL | Page | Login |
 |---|---|---|
-| `/` | Feed (Latest / Following), search with `?q=` | — |
+| `/` | Home: welcome band with topics, Latest / Popular / Following tabs, search with `?q=`, sidebar with writing prompt, trending tags and authors to follow | — |
 | `/post/:slug` | Post with Markdown + syntax-highlighted code, like, save, follow, comments | — |
 | `/tags`, `/tag/:slug` | All tags, posts with a tag | — |
 | `/profile/:id` | Profile: posts, followers, following | — |
@@ -65,7 +65,7 @@ so there's nothing else to configure. Set `API_URL` to use another API address.
 | GET | `/api/auth/me` | Logged in | — (401 if not) |
 | GET | `/api/auth/session` | Public | — returns `{ user }`, `null` if not logged in |
 | POST | `/api/auth/logout` | Public | — clears the session cookie |
-| GET | `/api/posts` | Public | query: `search` (or `q`), `tag`, `author`, `page`, `limit` (max 50) |
+| GET | `/api/posts` | Public | query: `search` (or `q`), `tag`, `author`, `sort` (`latest`/`popular`), `page`, `limit` (max 50). Logged-in readers also get `bookmarked` on each post |
 | GET | `/api/posts/mine` | Logged in | query: `status` (`draft`/`published`), `search` (title), `sort` (`newest`/`likes`/`comments`), `page`, `limit`. `/api/posts/me` also works |
 | GET | `/api/posts/following` | Logged in | query: `page`, `limit` — posts from people I follow |
 | GET | `/api/posts/:slug` | Public (drafts: author only); also accepts the post id | — returns `{ post, viewer: { liked, bookmarked, followingAuthor } }` |
@@ -81,6 +81,7 @@ so there's nothing else to configure. Set `API_URL` to use another API address.
 | POST | `/api/posts/:id/comments` | Logged in | `{ content }` |
 | PATCH | `/api/comments/:id` | Comment writer | `{ content }` |
 | DELETE | `/api/comments/:id` | Comment writer or post author | — |
+| GET | `/api/users/suggested` | Public | query: `limit` (max 10) — authors to follow, most liked first; never you or people you follow |
 | GET | `/api/users/:id` | Public | — returns `{ user, posts, stats, isFollowing }` (newest 10 published posts) |
 | PUT / PATCH | `/api/users/me` | Logged in | `{ name?, bio?, avatarUrl? }` |
 | GET | `/api/users/me/bookmarks` | Logged in | query: `page`, `limit` |

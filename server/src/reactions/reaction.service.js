@@ -62,7 +62,16 @@ export async function listMyBookmarks(user, query = {}) {
   const order = new Map(pageIds.map((id, i) => [String(id), i]));
   posts.sort((a, b) => order.get(String(a._id)) - order.get(String(b._id)));
 
-  return { posts, pagination: pageInfo(paging, ordered.length) };
+  return { posts: posts.map((p) => ({ ...p.toJSON(), bookmarked: true })), pagination: pageInfo(paging, ordered.length) };
+}
+
+// Adds `bookmarked: true/false` to each post in a list, for the card's
+// bookmark button. Visitors who aren't logged in get the list unchanged.
+export async function withBookmarkFlags(result, viewer) {
+  if (!viewer || !result.posts.length) return result;
+  const ids = result.posts.map((p) => p._id);
+  const saved = new Set((await Bookmark.find({ user: viewer._id, post: { $in: ids } }).distinct('post')).map(String));
+  return { ...result, posts: result.posts.map((p) => ({ ...p.toJSON(), bookmarked: saved.has(String(p._id)) })) };
 }
 
 // What the current visitor has done with this post, for the like/bookmark/

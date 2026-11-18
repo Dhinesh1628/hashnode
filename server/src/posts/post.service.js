@@ -106,11 +106,16 @@ export async function findPublishedPostById(id) {
   return post;
 }
 
-// One page of published posts matching `filter`, newest first.
-async function findPublished(filter, paging) {
+const FEED_SORTS = {
+  latest: { publishedAt: -1, _id: -1 },
+  popular: { likeCount: -1, commentCount: -1, publishedAt: -1, _id: -1 },
+};
+
+// One page of published posts matching `filter`. Newest first unless sort is 'popular'.
+async function findPublished(filter, paging, sort = 'latest') {
   const [posts, total] = await Promise.all([
     Post.find(filter).published()
-      .sort({ publishedAt: -1, _id: -1 })
+      .sort(FEED_SORTS[sort] ?? FEED_SORTS.latest)
       .skip(paging.skip).limit(paging.limit)
       .select('-content') // lists show the excerpt; the full text is only on the post page
       .populate(POPULATE),
@@ -127,6 +132,7 @@ export async function listFollowingFeed(user, query = {}) {
 
 // Public feed: published posts only, newest first.
 // Optional filters: ?tag=<slug>  ?author=<userId>  ?search=<text> (or ?q=<text>)
+// Order: ?sort=latest (default) or ?sort=popular (most liked first)
 export async function listPublishedPosts(query = {}) {
   const paging = readPagination(query);
   const filter = {};
@@ -148,7 +154,7 @@ export async function listPublishedPosts(query = {}) {
     filter.$or = [{ title: pattern }, { content: pattern }];
   }
 
-  return findPublished(filter, paging);
+  return findPublished(filter, paging, query.sort);
 }
 
 const MY_POST_SORTS = {

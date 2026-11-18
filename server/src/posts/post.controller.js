@@ -1,13 +1,13 @@
 import {
   createPost, updatePost, deletePost, listPublishedPosts, listMyPosts, listFollowingFeed, getPostBySlug,
 } from './post.service.js';
-import { viewerState } from '../reactions/reaction.service.js';
+import { viewerState, withBookmarkFlags } from '../reactions/reaction.service.js';
 
 // Controllers stay thin: read the request, call the service, shape the response.
 // Express 5 leaves req.body undefined when no body was sent, hence `?? {}`.
 export const postController = {
   async list(req, res) {
-    res.json(await listPublishedPosts(req.query));
+    res.json(await withBookmarkFlags(await listPublishedPosts(req.query), req.user));
   },
 
   async listMine(req, res) {
@@ -15,7 +15,7 @@ export const postController = {
   },
 
   async followingFeed(req, res) {
-    res.json(await listFollowingFeed(req.user, req.query));
+    res.json(await withBookmarkFlags(await listFollowingFeed(req.user, req.query), req.user));
   },
 
   // `viewer` tells the client which buttons to show as active

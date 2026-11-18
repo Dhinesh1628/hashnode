@@ -56,7 +56,7 @@ export function createApp(env) {
   });
   app.use('/api/auth', authRoutes(env));
   app.use('/api/posts', postRoutes(env));
-  app.use('/api/tags', tagRoutes());
+  app.use('/api/tags', tagRoutes(env));
   app.use('/api/users', userRoutes(env));
   app.use('/api/comments', commentRoutes(env));
 

@@ -1,7 +1,7 @@
 import mongoose from 'mongoose';
 import { User, PUBLIC_USER_FIELDS } from './user.model.js';
 import { Follow } from './follow.model.js';
-import { Post } from '../posts/post.model.js';
+import { Post, PUBLISHED } from '../posts/post.model.js';
 import { addOnce } from '../reactions/reaction.service.js';
 import { listPublishedPosts } from '../posts/post.service.js';
 import { HttpError } from '../lib/http-error.js';
@@ -34,6 +34,29 @@ export async function getProfile(id, viewer) {
     posts: latest.posts,
     stats: { posts: postCount, followers, following },
     isFollowing: Boolean(isFollowing),
+  };
+}
+
+// "Authors to follow": people with published posts, most-liked first.
+// Never suggests yourself or anyone you already follow.
+export async function suggestAuthors(viewer, query = {}) {
+  const limit = Math.min(10, Math.max(1, Number.parseInt(query.limit, 10) || 5));
+  const exclude = viewer
+    ? [viewer._id, ...(await Follow.find({ follower: viewer._id }).distinct('following'))]
+    : [];
+
+  const rows = await Post.aggregate([
+    { $match: { ...PUBLISHED, author: { $nin: exclude } } },
+    { $group: { _id: '$author', posts: { $sum: 1 }, likes: { $sum: '$likeCount' } } },
+    { $sort: { likes: -1, posts: -1, _id: 1 } },
+    { $limit: limit },
+  ]);
+  const users = await User.find({ _id: { $in: rows.map((r) => r._id) } }).select(PUBLIC_USER_FIELDS);
+  const byId = new Map(users.map((u) => [String(u._id), u]));
+  return {
+    users: rows
+      .filter((r) => byId.has(String(r._id)))
+      .map((r) => ({ ...byId.get(String(r._id)).toJSON(), postCount: r.posts })),
   };
 }
 

@@ -339,3 +339,29 @@ next to every row. Delete still asks for confirmation (a PRD requirement).
 On phones the one-column grid was `1fr`, which can't shrink below its
 content, so long titles widened the page and the phone zoomed out.
 `minmax(0, 1fr)` lets titles truncate instead.
+
+## Home feed redesign
+
+**Same process and the same two colors as the dashboard.**
+Mockup first, approved, then built and checked as a visitor and as a
+logged-in reader, in light, dark and at 375 px.
+
+**A welcome band with topic chips.**
+The old page opened straight into tabs and felt empty. The band says what
+the site is for, and the chips (top tags) give a first click for visitors.
+
+**Popular tab.**
+`GET /api/posts?sort=popular` orders by likes, then comments, then date.
+It's a sort on stored counters, so it costs nothing extra.
+
+**One-click bookmarks on every card.**
+Post lists add `bookmarked: true/false` per post for a logged-in reader
+(one extra query per page, not per post). Visitors get no flag and are sent
+to log in when they click. The same card is used on the feed, tag pages,
+profiles and the bookmarks page, so they all gained it.
+
+**A sidebar that suggests a next step.**
+A writing prompt (with draft count for authors, sign-up for visitors),
+trending tags, and authors to follow. `GET /api/users/suggested` ranks
+authors with published posts by total likes and never suggests yourself or
+anyone you already follow; following someone removes them from the list.

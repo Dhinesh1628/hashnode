@@ -10,7 +10,7 @@ export function postRoutes(env) {
   const router = Router();
   const auth = requireAuth(env);
 
-  router.get('/', posts.list);
+  router.get('/', optionalAuth(env), posts.list); // logged-in readers also get bookmark flags
   // Fixed words must come before '/:slug'. Real slugs always end in a
   // random suffix ("hello-k3f9a"), so they can never equal "mine", "me" or "following".
   router.get('/mine', auth, posts.listMine); // PRD name
