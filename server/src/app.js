@@ -2,6 +2,8 @@ import express from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
 import { authRoutes } from './auth/auth.routes.js';
+import { postRoutes } from './posts/post.routes.js';
+import { tagRoutes } from './tags/tag.routes.js';
 import { notFoundRoute, errorHandler } from './middleware/error-handler.js';
 
 // Building the app in a function (instead of at import time) lets the
@@ -15,6 +17,8 @@ export function createApp(env) {
 
   app.get('/api/health', (_req, res) => res.json({ ok: true }));
   app.use('/api/auth', authRoutes(env));
+  app.use('/api/posts', postRoutes(env));
+  app.use('/api/tags', tagRoutes());
 
   app.use(notFoundRoute);
   app.use(errorHandler);

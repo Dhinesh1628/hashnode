@@ -28,8 +28,11 @@ postSchema.index({ author: 1, status: 1, publishedAt: -1 });
 // Every public query goes through Post.find().published().
 // Drafts leaking into the feed is an automatic fail, so the rule lives
 // in exactly one place instead of being repeated in every controller.
+// PUBLISHED is exported for aggregations, which can't use query helpers.
+export const PUBLISHED = Object.freeze({ status: 'published' });
+
 postSchema.query.published = function published() {
-  return this.where({ status: 'published' });
+  return this.where({ ...PUBLISHED });
 };
 
 postSchema.pre('validate', function derivedFields() {

@@ -63,3 +63,44 @@ a misleading excerpt, and every client gets the same values.
 "React", " react " and "REACT" are one tag. Upsert means two people creating
 the same new tag at the same moment can't produce duplicates. Max 5 per post.
 `c++` and `c#` get readable slugs (`c-plus-plus`, `c-sharp`).
+
+## Phase 2: posts, tags, search
+
+**A stranger asking for a draft gets 404, not 403.**
+403 would confirm the draft exists. The author can still open their own
+draft by its link (with their token) to preview it before publishing.
+
+**Editing someone else's post gets 403, not 404.**
+Edits go by post id, and the person already had the id from a public page,
+so there's nothing to hide; a clear "you can only change your own posts"
+is more useful to the client.
+
+**Read by slug, change by id.**
+Slugs make shareable URLs. Ids are what the owner's editor uses; they never
+change and can't clash with route names like `/me`.
+
+**The request body is copied field by field, never spread into the model.**
+`author`, `slug`, `publishedAt`, `excerpt` and `readingTime` can't be set by
+the client even if sent. A test sends all of them and checks they're ignored.
+
+**Search uses an escaped, case-insensitive regex, not a text index.**
+It matches partial words ("reac" finds "React"), needs no index setup, and
+is fast enough for a project this size. Escaping means `c++` or `(` are
+searched literally instead of breaking the query. At real scale I'd switch
+to Atlas Search.
+
+**Tag counts are calculated, not stored.**
+`GET /api/tags` counts published posts per tag with an aggregation. A stored
+counter would drift when posts are deleted or unpublished, and a tag used
+only by drafts never appears, so drafts can't leak through tag names.
+
+**Lists leave out the full `content`.**
+Feeds show the excerpt; the full Markdown is only sent on the post page.
+Smaller responses, faster feed.
+
+**Pagination falls back instead of failing.**
+`?limit=9999&page=-5` becomes `limit=50&page=1`. A bad page number isn't
+worth an error, but nobody can request the whole database at once.
+
+**Author info in posts never includes email.**
+Posts populate only `name`, `avatarUrl` and `bio` from the author.
