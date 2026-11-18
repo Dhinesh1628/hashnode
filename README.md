@@ -3,21 +3,57 @@
 A blogging platform for developers: write in Markdown, publish, tag, and
 read other people's posts. MERN stack, built solo over three weeks.
 
-> Status: **Phase 3 of 5 — social API** (comments, likes, bookmarks, profiles, following)
+> Status: **Phase 4 of 5 — React frontend** (Vite + React client for the whole API)
 
-## Run the API locally
+## Run it locally
 
-Requirements: Node.js 20.6 or newer, and MongoDB (local or a free Atlas cluster).
+Requirements: Node.js 22 or newer, and MongoDB (local or a free Atlas cluster).
+You need two terminals: one for the API, one for the website.
+
+**Terminal 1: the API** (http://localhost:5050)
 
 ```bash
 cd server
 npm install
 cp .env.example .env      # then edit .env: set MONGO_URI and a long JWT_SECRET
-npm run dev               # http://localhost:5050/api/health
+npm run dev
 npm test                  # runs against an in-memory MongoDB, no setup needed
 ```
 
 The first `npm test` downloads a MongoDB binary (~100 MB), so it takes a minute.
+If Atlas fails with `querySrv ECONNREFUSED` (common on Windows), uncomment
+`DNS_SERVERS` in `.env`.
+
+**Terminal 2: the website** (http://localhost:5174)
+
+```bash
+cd client
+npm install
+npm run dev
+```
+
+The website's dev server forwards every `/api` request to the API on port 5050,
+so there's nothing else to configure. Set `API_URL` to use another API address.
+
+| Command (in `client/`) | What it does |
+|---|---|
+| `npm run dev` | Website with live reload |
+| `npm run lint` | ESLint, including the React hooks rules |
+| `npm run build` | Production build into `client/dist/` |
+
+## Pages
+
+| URL | Page | Login |
+|---|---|---|
+| `/` | Feed (Latest / Following), search with `?q=` | — |
+| `/post/:slug` | Post with Markdown, like, save, follow author, comments | — |
+| `/tags`, `/tag/:slug` | All tags, posts with a tag | — |
+| `/u/:id` | Profile: posts, followers, following | — |
+| `/login`, `/register` | Log in, sign up | — |
+| `/new`, `/edit/:slug` | Editor with Markdown preview, draft or publish | ✔ |
+| `/dashboard` | My posts, drafts included; edit and delete | ✔ |
+| `/bookmarks` | Saved posts | ✔ |
+| `/settings` | Edit name, bio, avatar | ✔ |
 
 ## API
 
@@ -56,6 +92,16 @@ Errors always look like `{ "error": { "message": "...", "fields": { ... } } }`.
 ## Project layout
 
 ```
+client/
+  src/
+    main.jsx          entry: router + auth provider
+    App.jsx           all routes in one place
+    api/client.js     the only file that calls fetch(): token header, error shape
+    auth/             AuthProvider (login state), useAuth hook
+    components/       Layout/navbar, PostCard, Comments, FollowButton, Markdown, form bits
+    pages/            one file per page
+    lib/              useLoad (data loading), useTitle, date formatting
+    index.css         all styles, light and dark
 server/
   src/
     app.js            builds the Express app (used by server.js and tests)

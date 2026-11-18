@@ -17,7 +17,7 @@ export function loadEnv(source = process.env) {
     mongoUri: source.MONGO_URI,
     jwtSecret: source.JWT_SECRET,
     jwtExpiresIn: source.JWT_EXPIRES_IN || '7d',
-    clientOrigin: source.CLIENT_ORIGIN || 'http://localhost:5173',
+    clientOrigin: source.CLIENT_ORIGIN || 'http://localhost:5174',
     isProduction: source.NODE_ENV === 'production',
   });
 }

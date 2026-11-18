@@ -151,3 +151,52 @@ follower lists.
 **Tests rebuild indexes after wiping the database.**
 Dropping the test database also drops indexes, so the "two likes at once"
 test would pass for the wrong reason. `reset()` recreates them.
+
+## Phase 4: React frontend
+
+**Vite + React 19 + React Router 7, no UI or state library.**
+The app has one piece of global state (who is logged in), which fits in a
+React context. Everything else belongs to the page that shows it. Fewer
+libraries means less to learn and less to explain.
+
+**One `api()` function for every request.**
+It adds the token, turns the API's `{ error: { message, fields } }` into an
+`ApiError`, and logs the user out if a logged-in request gets 401. No
+component calls `fetch` directly.
+
+**The dev server proxies `/api` to Express.**
+The browser only ever talks to one origin, so there's no CORS to debug, and
+the same relative URLs work when the API and site are deployed together.
+
+**A small `useLoad` hook instead of React Query.**
+It loads data when its inputs change, ignores answers that arrive after the
+user moved on, and drops old data when the inputs change, so one post never
+flashes on another post's page. `setData` lets the like button update the
+count straight from the API's answer without reloading the page.
+
+**The token is stored in localStorage.**
+It survives a page refresh, and every read is wrapped in try/catch because
+storage can be blocked. The trade-off: any script on the page could read it.
+That's why the Markdown renderer must never run HTML (next point).
+An httpOnly cookie would be safer and is a sensible Phase 5 upgrade.
+
+**Markdown is rendered with react-markdown, which ignores raw HTML.**
+A post containing `<script>` shows it as text. Links open in a new tab with
+`rel="noopener noreferrer"`.
+
+**The page waits for the saved login check before rendering.**
+Otherwise a logged-in user briefly sees "Log in" in the navbar, and every
+page loads its data twice (once as a visitor, once as themselves).
+
+**Route guards are for convenience; the API is the real protection.**
+`RequireAuth` sends visitors to /login and back afterwards, and the editor
+says "you can only edit your own posts". But hiding a button doesn't secure
+anything: the API rejects these requests even when sent directly.
+
+**Errors appear where they happened.**
+Field errors from the API show under the matching input. Other errors show
+as a banner on the form or page. A 404 shows a proper "not found" page.
+
+**Plain CSS with variables, light and dark.**
+One stylesheet, colors as CSS variables, with a dark version under
+`prefers-color-scheme`. Works down to phone width without horizontal scrolling.
