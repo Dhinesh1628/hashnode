@@ -13,7 +13,7 @@ export function loadEnv(source = process.env) {
   }
 
   return Object.freeze({
-    port: Number(source.PORT) || 5000,
+    port: Number(source.PORT) || 5050,
     mongoUri: source.MONGO_URI,
     jwtSecret: source.JWT_SECRET,
     jwtExpiresIn: source.JWT_EXPIRES_IN || '7d',

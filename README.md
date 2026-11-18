@@ -13,7 +13,7 @@ Requirements: Node.js 20.6 or newer, and MongoDB (local or a free Atlas cluster)
 cd server
 npm install
 cp .env.example .env      # then edit .env: set MONGO_URI and a long JWT_SECRET
-npm run dev               # http://localhost:5000/api/health
+npm run dev               # http://localhost:5050/api/health
 npm test                  # runs against an in-memory MongoDB, no setup needed
 ```
 
