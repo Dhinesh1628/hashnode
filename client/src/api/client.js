@@ -1,5 +1,8 @@
-// The one place the app talks to the API. Every request goes through api(),
-// so headers and error handling are written once.
+import axios from 'axios';
+
+// The one place the app talks to the API: a pre-configured Axios instance plus
+// a small api() helper. Pages call api('/posts', { query }) and get the JSON
+// body back, or an ApiError they can show.
 //
 // Login state lives in an httpOnly cookie that the API sets. The browser
 // sends it automatically, and this code never sees the token, so a script
@@ -7,6 +10,14 @@
 
 // Earlier versions kept the token in localStorage. Remove any leftover copy.
 try { localStorage.removeItem('hashnode.token'); } catch { /* storage blocked: nothing to clean */ }
+
+export const http = axios.create({
+  baseURL: '/api',
+  withCredentials: true, // send the session cookie
+  // The API requires this header on cookie-authenticated changes (CSRF protection).
+  headers: { 'X-Requested-With': 'fetch' },
+  timeout: 20_000,
+});
 
 // Mirrors the API's error shape: { error: { message, fields } }.
 // status 0 means the request never reached the API.
@@ -24,39 +35,30 @@ export function setUnauthorizedHandler(handler) {
   onUnauthorized = handler;
 }
 
-export async function api(path, { method = 'GET', body, query } = {}) {
-  const url = new URL(`/api${path}`, window.location.origin);
-  for (const [key, value] of Object.entries(query ?? {})) {
-    if (value !== undefined && value !== null && value !== '') url.searchParams.set(key, value);
-  }
-
-  // The API requires this header on cookie-authenticated changes (CSRF protection).
-  const headers = { 'X-Requested-With': 'fetch' };
-  if (body !== undefined) headers['Content-Type'] = 'application/json';
-
-  let res;
-  try {
-    res = await fetch(url, {
-      method,
-      headers,
-      credentials: 'same-origin', // send the session cookie
-      body: body === undefined ? undefined : JSON.stringify(body),
-    });
-  } catch {
-    throw new ApiError(0, "Can't reach the server. Check your connection and try again.");
-  }
-  if (res.status === 204) return null;
-
-  let data = null;
-  try { data = await res.json(); } catch { /* not JSON, e.g. the dev proxy's own error page */ }
-
-  if (!res.ok) {
-    if (!data && res.status >= 500) {
+// Turns every Axios failure into an ApiError with a message a person can read.
+http.interceptors.response.use(
+  (response) => response,
+  (err) => {
+    const res = err.response;
+    if (!res) {
+      throw new ApiError(0, "Can't reach the server. Check your connection and try again.");
+    }
+    const body = res.data && typeof res.data === 'object' ? res.data : null;
+    if (!body && res.status >= 500) {
       throw new ApiError(0, "Can't reach the API. Is the server running?");
     }
-    const error = new ApiError(res.status, data?.error?.message || `Request failed (${res.status})`, data?.error?.fields);
+    const error = new ApiError(res.status, body?.error?.message || `Request failed (${res.status})`, body?.error?.fields);
     if (res.status === 401 && onUnauthorized) onUnauthorized(error);
     throw error;
-  }
-  return data;
+  },
+);
+
+// Empty query values are dropped, so ?search= isn't sent when the box is empty.
+function cleanParams(query = {}) {
+  return Object.fromEntries(Object.entries(query).filter(([, v]) => v !== undefined && v !== null && v !== ''));
+}
+
+export async function api(path, { method = 'GET', body, query } = {}) {
+  const res = await http.request({ url: path, method, data: body, params: cleanParams(query) });
+  return res.status === 204 ? null : res.data;
 }

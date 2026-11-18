@@ -1,4 +1,4 @@
-import { Link } from 'react-router';
+import { Link } from 'react-router-dom';
 import { useTitle } from '../lib/useTitle.js';
 
 export default function NotFound({ message = "We couldn't find that page." }) {

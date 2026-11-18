@@ -257,3 +257,45 @@ sign up, reload, publish with an external cover image, log out, log back in.
 That caught one real issue: with `NODE_ENV=production`, npm skips dev
 dependencies, which would have left Vite uninstalled. Hence `--include=dev`
 for the client install.
+
+## PRD alignment pass
+
+After checking every line of the PRD against the code:
+
+**Syntax highlighting with rehype-highlight (highlight.js).**
+The PRD requires fenced code blocks highlighted by language. rehype-highlight
+plugs into react-markdown and only adds `<span class="hljs-…">` tags, so
+rendering stays safe. Blocks need a language (```js): auto-detection guessed
+wrong too often (SQL came out as "ini"), and wrong colors are worse than none.
+
+**The Markdown renderer loads only when needed.**
+highlight.js added ~230 kB. It's split into its own file that loads on the
+post page and editor preview only, so the feed is lighter than before.
+
+**The PRD's endpoint names were added beside the existing ones.**
+`PUT /api/posts/:id`, `GET /api/posts/mine`, `?search=`, `GET /api/tags/:slug/posts`,
+`PUT /api/users/me`, and posts inside `GET /api/users/:id`. The older names
+(`PATCH`, `/me`, `?q=`) keep working, so nothing that used them broke. Both
+PUT and PATCH accept any subset of fields. `test/prd-api.test.js` calls each
+PRD endpoint exactly as the spec writes it.
+
+**The PRD's page URLs, with redirects from the old ones.**
+`/editor/new`, `/editor/:id`, `/profile/:id`. Old links (`/new`, `/edit/…`,
+`/u/…`) redirect, so bookmarks still work.
+
+**Axios and react-router-dom, as listed in the PRD's packages.**
+`api/client.js` is now a pre-configured Axios instance; an interceptor turns
+every failure into the same `ApiError`. Pages didn't change, because they
+only ever called `api()`.
+
+**A tag picker instead of a comma-separated box.**
+The PRD asks to "attach existing tags or create a new tag". Existing tags are
+suggested as you type; Enter or comma creates a new one; tags show as
+removable chips, and names are normalised the same way the server does.
+
+**Deliberate difference: the token is in an httpOnly cookie, not localStorage.**
+The PRD's user story says "token persisted in localStorage". The goal it
+describes (stay logged in across refreshes, validated on load) is met, more
+securely: an httpOnly cookie can't be read by scripts. The API still accepts
+`Authorization: Bearer` tokens exactly as section 5 specifies, so Postman
+testing follows the PRD unchanged. See Phase 5 above.

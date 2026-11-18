@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Link } from 'react-router';
+import { Link } from 'react-router-dom';
 import { api } from '../api/client.js';
 import { useAuth, useLoginRedirect } from '../auth/useAuth.js';
 import { useLoad } from '../lib/useLoad.js';
@@ -35,10 +35,10 @@ function CommentItem({ comment, canEdit, canDelete, onChanged }) {
 
   return (
     <li className="comment">
-      <Link to={`/u/${comment.author._id}`}><Avatar user={comment.author} size={32} /></Link>
+      <Link to={`/profile/${comment.author._id}`}><Avatar user={comment.author} size={32} /></Link>
       <div className="comment-body">
         <div className="comment-meta">
-          <Link to={`/u/${comment.author._id}`}><strong>{comment.author.name}</strong></Link>
+          <Link to={`/profile/${comment.author._id}`}><strong>{comment.author.name}</strong></Link>
           <span className="muted"> · {formatDate(comment.createdAt)}</span>
           {comment.updatedAt !== comment.createdAt && <span className="muted"> · edited</span>}
         </div>

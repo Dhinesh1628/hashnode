@@ -126,7 +126,7 @@ export async function listFollowingFeed(user, query = {}) {
 }
 
 // Public feed: published posts only, newest first.
-// Optional filters: ?tag=<slug>  ?author=<userId>  ?q=<search text>
+// Optional filters: ?tag=<slug>  ?author=<userId>  ?search=<text> (or ?q=<text>)
 export async function listPublishedPosts(query = {}) {
   const paging = readPagination(query);
   const filter = {};
@@ -142,7 +142,7 @@ export async function listPublishedPosts(query = {}) {
     }
     filter.author = String(query.author);
   }
-  const q = String(query.q ?? '').trim().slice(0, 100);
+  const q = String(query.search ?? query.q ?? '').trim().slice(0, 100);
   if (q) {
     const pattern = new RegExp(escapeRegex(q), 'i');
     filter.$or = [{ title: pattern }, { content: pattern }];
@@ -176,9 +176,12 @@ export async function listMyPosts(user, query = {}) {
 // A single post page. Everyone sees published posts. A draft is visible only
 // to its author (for previewing); to anyone else it simply doesn't exist (404),
 // so even the fact that the draft exists isn't revealed.
-export async function getPostBySlug(slug, viewer) {
-  let post = await Post.findOne({ slug }).published().populate(POPULATE);
-  if (!post && viewer) post = await Post.findOne({ slug, author: viewer._id }).populate(POPULATE);
+// `ref` is normally the slug; the editor (/editor/:id) passes the post id.
+// A slug can never look like an id: slugs always contain a dash.
+export async function getPostBySlug(ref, viewer) {
+  const match = /^[0-9a-f]{24}$/i.test(ref) ? { _id: ref } : { slug: ref };
+  let post = await Post.findOne(match).published().populate(POPULATE);
+  if (!post && viewer) post = await Post.findOne({ ...match, author: viewer._id }).populate(POPULATE);
   if (!post) throw HttpError.notFound('Post not found');
   return post;
 }

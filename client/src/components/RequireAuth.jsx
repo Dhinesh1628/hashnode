@@ -1,4 +1,4 @@
-import { Navigate, Outlet, useLocation } from 'react-router';
+import { Navigate, Outlet, useLocation } from 'react-router-dom';
 import { useAuth } from '../auth/useAuth.js';
 import { Loading } from './ui.jsx';
 

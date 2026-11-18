@@ -1,4 +1,4 @@
-import { Link } from 'react-router';
+import { Link } from 'react-router-dom';
 
 // Small presentational pieces used across pages.
 
@@ -71,7 +71,7 @@ export function TagChips({ tags }) {
 export function UserRow({ user }) {
   return (
     <li className="user-row">
-      <Link to={`/u/${user._id}`} className="user-row-link">
+      <Link to={`/profile/${user._id}`} className="user-row-link">
         <Avatar user={user} size={40} />
         <span>
           <strong>{user.name}</strong>

@@ -1,4 +1,4 @@
-import { useSearchParams } from 'react-router';
+import { useSearchParams } from 'react-router-dom';
 import { api } from '../api/client.js';
 import { useLoad } from '../lib/useLoad.js';
 import { useTitle } from '../lib/useTitle.js';

@@ -12,11 +12,15 @@ export function postRoutes(env) {
 
   router.get('/', posts.list);
   // Fixed words must come before '/:slug'. Real slugs always end in a
-  // random suffix ("hello-k3f9a"), so they can never equal "me" or "following".
-  router.get('/me', auth, posts.listMine);
+  // random suffix ("hello-k3f9a"), so they can never equal "mine", "me" or "following".
+  router.get('/mine', auth, posts.listMine); // PRD name
+  router.get('/me', auth, posts.listMine);   // same list, kept for older clients
   router.get('/following', auth, posts.followingFeed);
   router.get('/:slug', optionalAuth(env), posts.getOne);
   router.post('/', auth, posts.create);
+  // PUT is the PRD's verb. Both accept any subset of the fields, so the
+  // editor can send everything and a script can send just { status }.
+  router.put('/:id', auth, posts.update);
   router.patch('/:id', auth, posts.update);
   router.delete('/:id', auth, posts.remove);
 

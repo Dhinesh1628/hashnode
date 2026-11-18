@@ -1,12 +1,12 @@
 import { useState } from 'react';
-import { Link, useParams } from 'react-router';
+import { Link, useParams } from 'react-router-dom';
 import { api } from '../api/client.js';
 import { useAuth, useLoginRedirect } from '../auth/useAuth.js';
 import { useLoad } from '../lib/useLoad.js';
 import { useTitle } from '../lib/useTitle.js';
 import { formatDate } from '../lib/format.js';
 import { Avatar, ErrorBanner, Loading, TagChips } from '../components/ui.jsx';
-import { Markdown } from '../components/Markdown.jsx';
+import { Markdown } from '../components/LazyMarkdown.jsx';
 import { FollowButton } from '../components/FollowButton.jsx';
 import { Comments } from '../components/Comments.jsx';
 import NotFound from './NotFound.jsx';
@@ -53,7 +53,7 @@ export default function PostPage() {
     <article className="post">
       {!isPublished && (
         <div className="banner banner-info">
-          This is a <strong>draft</strong>. Only you can see it. <Link to={`/edit/${post.slug}`}>Continue editing</Link>
+          This is a <strong>draft</strong>. Only you can see it. <Link to={`/editor/${post._id}`}>Continue editing</Link>
         </div>
       )}
       {post.coverImage && <img className="post-cover" src={post.coverImage} alt="" />}
@@ -61,7 +61,7 @@ export default function PostPage() {
       <h1 className="post-title">{post.title}</h1>
 
       <div className="post-meta">
-        <Link to={`/u/${post.author._id}`} className="byline-author">
+        <Link to={`/profile/${post.author._id}`} className="byline-author">
           <Avatar user={post.author} size={44} />
           <span>
             <strong>{post.author.name}</strong>
@@ -103,7 +103,7 @@ export default function PostPage() {
             </button>
           </>
         )}
-        {isOwner && <Link to={`/edit/${post.slug}`} className="btn btn-outline">Edit post</Link>}
+        {isOwner && <Link to={`/editor/${post._id}`} className="btn btn-outline">Edit post</Link>}
       </div>
       <ErrorBanner error={actionError} />
 

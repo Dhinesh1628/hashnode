@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Link, Navigate, useLocation, useNavigate } from 'react-router';
+import { Link, Navigate, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../auth/useAuth.js';
 import { useTitle } from '../lib/useTitle.js';
 import { ErrorBanner, Field } from '../components/ui.jsx';

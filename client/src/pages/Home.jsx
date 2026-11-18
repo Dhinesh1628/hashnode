@@ -1,4 +1,4 @@
-import { Link, useSearchParams } from 'react-router';
+import { Link, useSearchParams } from 'react-router-dom';
 import { api } from '../api/client.js';
 import { useAuth } from '../auth/useAuth.js';
 import { useLoad } from '../lib/useLoad.js';
@@ -34,7 +34,7 @@ export default function Home() {
   const feed = useLoad(
     () => (tab === 'following'
       ? api('/posts/following', { query: { page } })
-      : api('/posts', { query: { page, q } })),
+      : api('/posts', { query: { page, search: q } })),
     [tab, page, q, user?._id ?? null],
   );
   useTitle(q ? `Search: ${q}` : 'Home');

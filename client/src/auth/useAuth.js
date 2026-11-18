@@ -1,5 +1,5 @@
 import { useCallback, useContext } from 'react';
-import { useLocation, useNavigate } from 'react-router';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { AuthContext } from './context.js';
 
 export function useAuth() {

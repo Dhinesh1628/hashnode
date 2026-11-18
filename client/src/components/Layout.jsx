@@ -1,5 +1,5 @@
 import { useEffect, useRef } from 'react';
-import { Link, NavLink, Outlet, useLocation, useNavigate, useSearchParams } from 'react-router';
+import { Link, NavLink, Outlet, useLocation, useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../auth/useAuth.js';
 import { Avatar, Loading } from './ui.jsx';
 
@@ -47,7 +47,7 @@ function UserMenu({ user, logout }) {
           <strong>{user.name}</strong>
           <span className="muted">{user.email}</span>
         </div>
-        <Link to={`/u/${user._id}`}>My profile</Link>
+        <Link to={`/profile/${user._id}`}>My profile</Link>
         <Link to="/dashboard">My posts</Link>
         <Link to="/bookmarks">Bookmarks</Link>
         <Link to="/settings">Settings</Link>
@@ -80,7 +80,7 @@ export function Layout() {
             <NavLink to="/tags">Tags</NavLink>
             {checking ? null : user ? (
               <>
-                <Link to="/new" className="btn btn-primary btn-sm">Write</Link>
+                <Link to="/editor/new" className="btn btn-primary btn-sm">Write</Link>
                 <UserMenu user={user} logout={logout} />
               </>
             ) : (

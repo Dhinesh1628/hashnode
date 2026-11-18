@@ -8,6 +8,7 @@ export function userRoutes(env) {
   const router = Router();
   const auth = requireAuth(env);
 
+  router.put('/me', auth, users.updateMe);   // PRD verb
   router.patch('/me', auth, users.updateMe);
   router.get('/me/bookmarks', auth, reactions.myBookmarks);
 

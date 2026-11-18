@@ -1,4 +1,4 @@
-import { Link, useParams, useSearchParams } from 'react-router';
+import { Link, useParams, useSearchParams } from 'react-router-dom';
 import { api } from '../api/client.js';
 import { useAuth } from '../auth/useAuth.js';
 import { useLoad } from '../lib/useLoad.js';

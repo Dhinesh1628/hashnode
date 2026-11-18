@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Link } from 'react-router';
+import { Link } from 'react-router-dom';
 import { api } from '../api/client.js';
 import { useAuth } from '../auth/useAuth.js';
 import { useTitle } from '../lib/useTitle.js';
@@ -38,7 +38,7 @@ export default function Settings() {
     <section className="narrow">
       <div className="page-head">
         <h1>Settings</h1>
-        <Link to={`/u/${user._id}`} className="muted">View my profile</Link>
+        <Link to={`/profile/${user._id}`} className="muted">View my profile</Link>
       </div>
       <form className="card settings" onSubmit={onSubmit} noValidate>
         <div className="settings-preview">

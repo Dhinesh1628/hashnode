@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Link, useSearchParams } from 'react-router';
+import { Link, useSearchParams } from 'react-router-dom';
 import { api } from '../api/client.js';
 import { useLoad } from '../lib/useLoad.js';
 import { useTitle } from '../lib/useTitle.js';
@@ -16,7 +16,7 @@ export default function Dashboard() {
   const [params, setParams] = useSearchParams();
   const status = params.get('status') ?? '';
   const page = Number(params.get('page')) || 1;
-  const list = useLoad(() => api('/posts/me', { query: { status, page } }), [status, page]);
+  const list = useLoad(() => api('/posts/mine', { query: { status, page } }), [status, page]);
   const [error, setError] = useState(null);
   useTitle('My posts');
 
@@ -35,7 +35,7 @@ export default function Dashboard() {
     <section>
       <div className="page-head">
         <h1>My posts</h1>
-        <Link to="/new" className="btn btn-primary">New post</Link>
+        <Link to="/editor/new" className="btn btn-primary">New post</Link>
       </div>
       <div className="tabs" role="tablist">
         {FILTERS.map(([value, label]) => (
@@ -47,7 +47,7 @@ export default function Dashboard() {
       <ErrorBanner error={error || list.error} />
       {!list.data && !list.error && <Loading />}
       {list.data && !list.data.posts.length && (
-        <Empty>{status === 'draft' ? 'No drafts.' : status === 'published' ? 'Nothing published yet.' : <>You haven&apos;t written anything yet. <Link to="/new">Start a post</Link>.</>}</Empty>
+        <Empty>{status === 'draft' ? 'No drafts.' : status === 'published' ? 'Nothing published yet.' : <>You haven&apos;t written anything yet. <Link to="/editor/new">Start a post</Link>.</>}</Empty>
       )}
       {list.data?.posts.length > 0 && (
         <>
@@ -63,7 +63,7 @@ export default function Dashboard() {
                   </span>
                 </div>
                 <div className="row">
-                  <Link to={`/edit/${post.slug}`} className="btn btn-outline btn-sm">Edit</Link>
+                  <Link to={`/editor/${post._id}`} className="btn btn-outline btn-sm">Edit</Link>
                   <button type="button" className="btn btn-danger btn-sm" onClick={() => remove(post)}>Delete</button>
                 </div>
               </li>

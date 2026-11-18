@@ -3,6 +3,7 @@ import { User, PUBLIC_USER_FIELDS } from './user.model.js';
 import { Follow } from './follow.model.js';
 import { Post } from '../posts/post.model.js';
 import { addOnce } from '../reactions/reaction.service.js';
+import { listPublishedPosts } from '../posts/post.service.js';
 import { HttpError } from '../lib/http-error.js';
 import { check } from '../lib/check.js';
 import { readPagination, pageInfo } from '../lib/pagination.js';
@@ -16,17 +17,24 @@ async function findUser(id) {
   return user;
 }
 
-// Public profile page: who they are, their numbers, and whether I follow them.
-// Never includes email. Their posts come from GET /api/posts?author=<id>.
+// Public profile page: who they are, their newest published posts, their
+// numbers, and whether I follow them. Never includes email or drafts.
+// More pages of posts: GET /api/posts?author=<id>&page=2.
 export async function getProfile(id, viewer) {
   const user = await findUser(id);
-  const [posts, followers, following, isFollowing] = await Promise.all([
+  const [latest, postCount, followers, following, isFollowing] = await Promise.all([
+    listPublishedPosts({ author: String(user._id) }),
     Post.countDocuments({ author: user._id }).published(),
     Follow.countDocuments({ following: user._id }),
     Follow.countDocuments({ follower: user._id }),
     viewer ? Follow.exists({ follower: viewer._id, following: user._id }) : null,
   ]);
-  return { user, stats: { posts, followers, following }, isFollowing: Boolean(isFollowing) };
+  return {
+    user,
+    posts: latest.posts,
+    stats: { posts: postCount, followers, following },
+    isFollowing: Boolean(isFollowing),
+  };
 }
 
 // Edit my own profile. Email and password are not editable here, even if sent.

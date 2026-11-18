@@ -1,12 +1,12 @@
 import { useState } from 'react';
-import { Link, useNavigate, useParams } from 'react-router';
+import { Link, useNavigate, useParams } from 'react-router-dom';
 import { api } from '../api/client.js';
 import { useAuth } from '../auth/useAuth.js';
 import { useLoad } from '../lib/useLoad.js';
 import { useTitle } from '../lib/useTitle.js';
-import { splitTags } from '../lib/format.js';
 import { ErrorBanner, Field, Loading } from '../components/ui.jsx';
-import { Markdown } from '../components/Markdown.jsx';
+import { Markdown } from '../components/LazyMarkdown.jsx';
+import { TagPicker } from '../components/TagPicker.jsx';
 import NotFound from './NotFound.jsx';
 
 function EditorForm({ post }) {
@@ -14,7 +14,7 @@ function EditorForm({ post }) {
   const [form, setForm] = useState({
     title: post?.title ?? '',
     coverImage: post?.coverImage ?? '',
-    tags: post?.tags.map((t) => t.name).join(', ') ?? '',
+    tags: post?.tags.map((t) => t.name) ?? [],
     content: post?.content ?? '',
   });
   const [view, setView] = useState('write');
@@ -32,7 +32,7 @@ function EditorForm({ post }) {
       title: form.title,
       content: form.content,
       coverImage: form.coverImage.trim(),
-      tags: splitTags(form.tags),
+      tags: form.tags,
       status,
     };
     try {
@@ -56,7 +56,7 @@ function EditorForm({ post }) {
 
       <Field label="Title" name="title" value={form.title} onChange={onChange} error={fields.title} maxLength={150} placeholder="A great title" required />
       <Field label="Cover image link (optional)" name="coverImage" type="url" value={form.coverImage} onChange={onChange} error={fields.coverImage} placeholder="https://…" />
-      <Field label="Tags (up to 5, comma separated)" name="tags" value={form.tags} onChange={onChange} error={fields.tags} placeholder="javascript, react, webdev" />
+      <TagPicker value={form.tags} onChange={(tags) => setForm((f) => ({ ...f, tags }))} error={fields.tags} />
 
       <div className={`field${fields.content ? ' field-invalid' : ''}`}>
         <div className="editor-tabs" role="tablist">
@@ -71,7 +71,7 @@ function EditorForm({ post }) {
             value={form.content}
             onChange={onChange}
             rows={18}
-            placeholder={'# Hello\n\nWrite in **Markdown**. Code blocks, lists and links all work.'}
+            placeholder={'# Hello\n\nWrite in **Markdown**. Lists and links work.\n\n```js\nconst answer = 42; // name the language after the backticks\n```'}
             aria-invalid={Boolean(fields.content)}
           />
         ) : (
@@ -79,7 +79,9 @@ function EditorForm({ post }) {
             {form.content.trim() ? <Markdown>{form.content}</Markdown> : <p className="muted">Nothing to preview yet.</p>}
           </div>
         )}
-        {fields.content && <p className="field-error">{fields.content}</p>}
+        {fields.content ? <p className="field-error">{fields.content}</p> : (
+          <p className="field-hint">Code blocks: put the language after the backticks, e.g. ```js, ```python, ```bash.</p>
+        )}
       </div>
 
       <div className="row editor-actions">
@@ -94,14 +96,15 @@ function EditorForm({ post }) {
   );
 }
 
-// /new starts empty; /edit/:slug loads the post (drafts load for their author).
+// /editor/new starts empty; /editor/:id loads the post (drafts load for their
+// author). The API accepts a post id or a slug here, so old /edit/<slug> links work too.
 export default function Editor() {
-  const { slug } = useParams();
+  const { id } = useParams();
   const { user } = useAuth();
-  const existing = useLoad(() => (slug ? api(`/posts/${slug}`) : Promise.resolve(null)), [slug ?? null]);
-  useTitle(slug ? 'Edit post' : 'New post');
+  const existing = useLoad(() => (id ? api(`/posts/${id}`) : Promise.resolve(null)), [id ?? null]);
+  useTitle(id ? 'Edit post' : 'New post');
 
-  if (!slug) return <EditorForm key="new" />;
+  if (!id) return <EditorForm key="new" />;
   if (existing.error?.status === 404) return <NotFound message="That post doesn't exist." />;
   if (existing.error) return <ErrorBanner error={existing.error} />;
   if (!existing.data) return <Loading />;

@@ -46,11 +46,11 @@ so there's nothing else to configure. Set `API_URL` to use another API address.
 | URL | Page | Login |
 |---|---|---|
 | `/` | Feed (Latest / Following), search with `?q=` | — |
-| `/post/:slug` | Post with Markdown, like, save, follow author, comments | — |
+| `/post/:slug` | Post with Markdown + syntax-highlighted code, like, save, follow, comments | — |
 | `/tags`, `/tag/:slug` | All tags, posts with a tag | — |
-| `/u/:id` | Profile: posts, followers, following | — |
+| `/profile/:id` | Profile: posts, followers, following | — |
 | `/login`, `/register` | Log in, sign up | — |
-| `/new`, `/edit/:slug` | Editor with Markdown preview, draft or publish | ✔ |
+| `/editor/new`, `/editor/:id` | Editor: Markdown + live preview, tag picker, draft or publish | ✔ |
 | `/dashboard` | My posts, drafts included; edit and delete | ✔ |
 | `/bookmarks` | Saved posts | ✔ |
 | `/settings` | Edit name, bio, avatar | ✔ |
@@ -65,23 +65,24 @@ so there's nothing else to configure. Set `API_URL` to use another API address.
 | GET | `/api/auth/me` | Logged in | — (401 if not) |
 | GET | `/api/auth/session` | Public | — returns `{ user }`, `null` if not logged in |
 | POST | `/api/auth/logout` | Public | — clears the session cookie |
-| GET | `/api/posts` | Public | query: `page`, `limit` (max 50), `tag`, `author`, `q` |
-| GET | `/api/posts/me` | Logged in | query: `page`, `limit`, `status` (`draft`/`published`) |
+| GET | `/api/posts` | Public | query: `search` (or `q`), `tag`, `author`, `page`, `limit` (max 50) |
+| GET | `/api/posts/mine` | Logged in | query: `page`, `limit`, `status` (`draft`/`published`). `/api/posts/me` also works |
 | GET | `/api/posts/following` | Logged in | query: `page`, `limit` — posts from people I follow |
-| GET | `/api/posts/:slug` | Public (drafts: author only) | — returns `{ post, viewer: { liked, bookmarked, followingAuthor } }` |
+| GET | `/api/posts/:slug` | Public (drafts: author only); also accepts the post id | — returns `{ post, viewer: { liked, bookmarked, followingAuthor } }` |
 | POST | `/api/posts` | Logged in | `{ title, content, tags?, coverImage?, status? }` |
-| PATCH | `/api/posts/:id` | Owner only | any of the fields above |
+| PUT / PATCH | `/api/posts/:id` | Owner only | any of `{ title, content, tags, coverImage, status }` |
 | DELETE | `/api/posts/:id` | Owner only | — |
 | GET | `/api/tags` | Public | — (tags with published-post counts) |
-| GET | `/api/tags/:slug` | Public | — |
+| GET | `/api/tags/:slug` | Public | — returns `{ tag, postCount }` |
+| GET | `/api/tags/:slug/posts` | Public | query: `page`, `limit` — published posts with this tag |
 | POST / DELETE | `/api/posts/:id/like` | Logged in | — returns `{ liked, likeCount }` |
 | POST / DELETE | `/api/posts/:id/bookmark` | Logged in | — returns `{ bookmarked }` |
 | GET | `/api/posts/:id/comments` | Public | query: `page`, `limit` (max 100) |
 | POST | `/api/posts/:id/comments` | Logged in | `{ content }` |
 | PATCH | `/api/comments/:id` | Comment writer | `{ content }` |
 | DELETE | `/api/comments/:id` | Comment writer or post author | — |
-| GET | `/api/users/:id` | Public | — returns `{ user, stats, isFollowing }` |
-| PATCH | `/api/users/me` | Logged in | `{ name?, bio?, avatarUrl? }` |
+| GET | `/api/users/:id` | Public | — returns `{ user, posts, stats, isFollowing }` (newest 10 published posts) |
+| PUT / PATCH | `/api/users/me` | Logged in | `{ name?, bio?, avatarUrl? }` |
 | GET | `/api/users/me/bookmarks` | Logged in | query: `page`, `limit` |
 | POST / DELETE | `/api/users/:id/follow` | Logged in | — returns `{ following, followerCount }` |
 | GET | `/api/users/:id/followers` | Public | query: `page`, `limit` |
@@ -108,9 +109,9 @@ client/
   src/
     main.jsx          entry: router + auth provider
     App.jsx           all routes in one place
-    api/client.js     the only file that calls fetch(): token header, error shape
+    api/client.js     pre-configured Axios instance + api() helper: cookie, CSRF header, error shape
     auth/             AuthProvider (login state), useAuth hook
-    components/       Layout/navbar, PostCard, Comments, FollowButton, Markdown, form bits
+    components/       Layout/navbar, PostCard, Comments, FollowButton, Markdown (lazy), TagPicker, form bits
     pages/            one file per page
     lib/              useLoad (data loading), useTitle, date formatting
     index.css         all styles, light and dark

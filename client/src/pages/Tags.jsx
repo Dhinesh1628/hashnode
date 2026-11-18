@@ -1,4 +1,4 @@
-import { Link, useParams, useSearchParams } from 'react-router';
+import { Link, useParams, useSearchParams } from 'react-router-dom';
 import { api } from '../api/client.js';
 import { useLoad } from '../lib/useLoad.js';
 import { useTitle } from '../lib/useTitle.js';
@@ -37,19 +37,20 @@ export function TagPage() {
   const { slug } = useParams();
   const [params, setParams] = useSearchParams();
   const page = Number(params.get('page')) || 1;
-  const tag = useLoad(() => api(`/tags/${slug}`), [slug]);
-  const posts = useLoad(() => api('/posts', { query: { tag: slug, page } }), [slug, page]);
-  useTitle(tag.data ? `#${tag.data.tag.name}` : 'Tag');
+  // One request returns the tag and its published posts.
+  const state = useLoad(() => api(`/tags/${slug}/posts`, { query: { page } }), [slug, page]);
+  const tag = state.data?.tag;
+  useTitle(tag ? `#${tag.name}` : 'Tag');
 
-  if (tag.error?.status === 404) return <NotFound message="That tag doesn't exist." />;
+  if (state.error?.status === 404) return <NotFound message="That tag doesn't exist." />;
 
   return (
     <section>
       <div className="page-head">
-        <h1>#{tag.data?.tag.name ?? slug}</h1>
-        {tag.data && <span className="muted">{plural(tag.data.postCount, 'post')}</span>}
+        <h1>#{tag?.name ?? slug}</h1>
+        {state.data && <span className="muted">{plural(state.data.pagination.total, 'post')}</span>}
       </div>
-      <PostList state={posts} onPage={(p) => setParams({ page: p })} emptyText="No published posts with this tag yet." />
+      <PostList state={state} onPage={(p) => setParams({ page: p })} emptyText="No published posts with this tag yet." />
     </section>
   );
 }

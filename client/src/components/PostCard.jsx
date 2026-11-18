@@ -1,4 +1,4 @@
-import { Link } from 'react-router';
+import { Link } from 'react-router-dom';
 import { Avatar, TagChips } from './ui.jsx';
 import { formatDate, plural } from '../lib/format.js';
 
@@ -7,7 +7,7 @@ export function PostCard({ post }) {
     <article className="card post-card">
       <div className="post-card-body">
         <div className="byline">
-          <Link to={`/u/${post.author._id}`} className="byline-author">
+          <Link to={`/profile/${post.author._id}`} className="byline-author">
             <Avatar user={post.author} size={28} />
             {post.author.name}
           </Link>
