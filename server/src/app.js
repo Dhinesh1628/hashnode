@@ -9,6 +9,7 @@ import { postRoutes } from './posts/post.routes.js';
 import { tagRoutes } from './tags/tag.routes.js';
 import { userRoutes } from './users/user.routes.js';
 import { commentRoutes } from './comments/comment.routes.js';
+import { statsRoutes } from './stats/stats.routes.js';
 import { notFoundRoute, errorHandler } from './middleware/error-handler.js';
 
 // Serves the built React site: real files from dist/, and index.html for any
@@ -59,6 +60,7 @@ export function createApp(env) {
   app.use('/api/tags', tagRoutes(env));
   app.use('/api/users', userRoutes(env));
   app.use('/api/comments', commentRoutes(env));
+  app.use('/api/stats', statsRoutes());
 
   if (env.clientDist) serveClient(app, env.clientDist);
 

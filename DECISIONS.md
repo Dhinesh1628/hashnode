@@ -307,7 +307,8 @@ A mockup was agreed before any code: greeting, five stat cards, a posts
 table, and a sidebar with drafts to finish and recent comments. The build
 matched it, then was checked in light mode, dark mode and at 375 px.
 
-**Two colors, each with one job.**
+**Two colors, each with one job.** *(Later replaced by the orange and charcoal
+identity below; the rule of one job per color stayed.)*
 Blue (`--primary`) means "you can click this" or "this is live": buttons,
 links, published posts. Amber (`--attention`) means "this needs you":
 drafts and new comments. Everything else is neutral. Green badges were
@@ -365,3 +366,37 @@ A writing prompt (with draft count for authors, sign-up for visitors),
 trending tags, and authors to follow. `GET /api/users/suggested` ranks
 authors with published posts by total likes and never suggests yourself or
 anyone you already follow; following someone removes them from the list.
+
+## Visual identity: orange and charcoal
+
+**Inspired by a reference, not copied.**
+The look takes its language from a design shot the team liked: a warm
+orange glow on cool gray, a wide display face, black buttons with an orange
+dot, thin ink frame lines with angled notches, and overlapping dark cards.
+Layout, copy and content are Hashnode's own.
+
+**Two colors again, each with one job.**
+Charcoal (`--ink`) is for buttons, cards and text; orange is only for action
+and attention: the button dot, drafts, "saved", "new". Published things are
+plain ink. Red stays on Delete only. In dark mode the buttons flip to light
+so they stay visible, and the orange keeps its role.
+
+**Three typefaces, each with a narrow job.**
+Michroma (wide) for headlines only, because it's tiring to read in
+paragraphs. Urbanist for everything people read. JetBrains Mono for small
+metadata: dates, counts, labels. The fonts ship with the site (Fontsource),
+so there's no request to Google Fonts and no change to the security policy.
+
+**Rules so it doesn't look like a template.**
+- The gradient appears in exactly two places (home hero, dashboard header).
+- No fake numbers: the hero stats come from `GET /api/stats`, counted live.
+- The hero's "popular now" card is the real most-liked post; the "new post"
+  card is a link into the real editor, not a fake input.
+- No emoji or text symbols as icons; every icon is from one icon set.
+- Sharp corners and 1px ink lines instead of soft shadows and rounded blobs.
+- Plain, specific copy.
+
+**The glow is part of the page background.**
+A full-width decorative layer sized with `100vw` made the page 8px wider than
+the window (the scrollbar counts in `100vw`). Painting the glow in `body`'s
+background on pages that have a `.glow-band` header avoids that entirely.

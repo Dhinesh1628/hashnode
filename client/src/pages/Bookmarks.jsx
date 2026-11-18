@@ -16,7 +16,7 @@ export default function Bookmarks() {
       <PostList
         state={list}
         onPage={(p) => setParams({ page: p })}
-        emptyText="Nothing saved yet. Press ☆ Save on a post to read it later."
+        emptyText="Nothing saved yet. Use the bookmark icon on any post to read it later."
       />
     </section>
   );

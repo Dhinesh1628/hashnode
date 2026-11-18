@@ -37,8 +37,9 @@ function Hero({ user, data }) {
   }
 
   return (
-    <header className="dash-hero">
+    <header className="dash-hero glow-band">
       <div>
+        <p className="eyebrow">Your dashboard</p>
         <h1>{greeting()}, {user.name.split(' ')[0]}</h1>
         <p>
           {parts.length
@@ -46,7 +47,7 @@ function Hero({ user, data }) {
             : "Here's how your writing is doing."}
         </p>
       </div>
-      <Link to="/editor/new" className="btn btn-primary"><IconPencil size={18} aria-hidden="true" /> Write a post</Link>
+      <Link to="/editor/new" className="btn btn-primary">Write a post</Link>
     </header>
   );
 }
@@ -213,7 +214,7 @@ function PostsTable({ stats, onChanged }) {
 
 function FinishDrafts({ drafts }) {
   return (
-    <section className="card side-card">
+    <section className="card side-card side-card-dark">
       <h2><IconFilePencil size={18} className="text-attention" aria-hidden="true" /> Finish a draft</h2>
       {drafts.length ? (
         <ul>
@@ -270,7 +271,7 @@ function Welcome() {
         <li>Add a code block with its language (<code>```js</code>) so it gets highlighted.</li>
         <li>Pick 2–3 tags so readers can find it from the tag pages.</li>
       </ol>
-      <Link to="/editor/new" className="btn btn-primary"><IconPencil size={18} aria-hidden="true" /> Start writing</Link>
+      <Link to="/editor/new" className="btn btn-primary">Start writing</Link>
     </section>
   );
 }

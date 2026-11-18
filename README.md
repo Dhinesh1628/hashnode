@@ -81,6 +81,7 @@ so there's nothing else to configure. Set `API_URL` to use another API address.
 | POST | `/api/posts/:id/comments` | Logged in | `{ content }` |
 | PATCH | `/api/comments/:id` | Comment writer | `{ content }` |
 | DELETE | `/api/comments/:id` | Comment writer or post author | — |
+| GET | `/api/stats` | Public | — returns `{ posts, writers, topics }` counted from published posts |
 | GET | `/api/users/suggested` | Public | query: `limit` (max 10) — authors to follow, most liked first; never you or people you follow |
 | GET | `/api/users/:id` | Public | — returns `{ user, posts, stats, isFollowing }` (newest 10 published posts) |
 | PUT / PATCH | `/api/users/me` | Logged in | `{ name?, bio?, avatarUrl? }` |

@@ -90,3 +90,17 @@ test('authors to follow: active writers, most liked first, never me or people I 
   const anon = await api().get('/api/users/suggested?limit=2').expect(200);
   assert.deepEqual(anon.body.users.map((u) => u.name), ['Popular', 'Quiet']);
 });
+
+test('site stats count only published posts, their writers and their tags', async () => {
+  const empty = await api().get('/api/stats').expect(200);
+  assert.deepEqual(empty.body, { posts: 0, writers: 0, topics: 0 });
+
+  const alice = await signUp('Alice');
+  const bob = await signUp('Bob');
+  await createPost(alice, { tags: ['react', 'node'] });
+  await createPost(alice, { tags: ['react'] });
+  await createPost(bob, { tags: ['secret-draft-tag'], status: 'draft' });
+
+  const res = await api().get('/api/stats').expect(200);
+  assert.deepEqual(res.body, { posts: 2, writers: 1, topics: 2 });
+});

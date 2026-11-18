@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
+import { IconBookmark, IconBookmarkFilled, IconHeart, IconHeartFilled } from '@tabler/icons-react';
 import { api } from '../api/client.js';
 import { useAuth, useLoginRedirect } from '../auth/useAuth.js';
 import { useLoad } from '../lib/useLoad.js';
@@ -90,7 +91,7 @@ export default function PostPage() {
               disabled={busy}
               aria-pressed={viewer.liked}
             >
-              {viewer.liked ? '♥' : '♡'} {post.likeCount} {post.likeCount === 1 ? 'like' : 'likes'}
+              {viewer.liked ? <IconHeartFilled size={18} aria-hidden="true" /> : <IconHeart size={18} aria-hidden="true" />} {post.likeCount} {post.likeCount === 1 ? 'like' : 'likes'}
             </button>
             <button
               type="button"
@@ -99,7 +100,7 @@ export default function PostPage() {
               disabled={busy}
               aria-pressed={viewer.bookmarked}
             >
-              {viewer.bookmarked ? '★ Saved' : '☆ Save'}
+              {viewer.bookmarked ? <IconBookmarkFilled size={18} aria-hidden="true" /> : <IconBookmark size={18} aria-hidden="true" />} {viewer.bookmarked ? 'Saved' : 'Save'}
             </button>
           </>
         )}
