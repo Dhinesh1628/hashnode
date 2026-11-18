@@ -1,0 +1,23 @@
+# Render Blueprint: one web service runs the API and serves the built website.
+# Render reads this file when you create a "Blueprint" from the GitHub repo.
+services:
+  - type: web
+    name: hashnode
+    runtime: node
+    plan: free
+    # Installs server + client, then builds the React site into client/dist.
+    buildCommand: npm run build
+    startCommand: npm start
+    # Render waits for this to answer 200 before sending traffic to a new deploy.
+    healthCheckPath: /api/health
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: NODE_VERSION
+        value: "22"
+      # Your MongoDB Atlas connection string. Render asks for it when you create the Blueprint.
+      - key: MONGO_URI
+        sync: false
+      # Render generates a long random secret. Never reuse your local one.
+      - key: JWT_SECRET
+        generateValue: true

@@ -4,12 +4,15 @@ import { createApp } from '../src/app.js';
 import { loadEnv } from '../src/config/env.js';
 
 // Spins up a throwaway in-memory MongoDB so tests never touch real data.
-export async function startTestApp() {
+// `overrides` sets extra environment variables for one test file.
+export async function startTestApp(overrides = {}) {
   const mongo = await MongoMemoryServer.create();
   const env = loadEnv({
     MONGO_URI: mongo.getUri(),
     JWT_SECRET: 'test-secret-that-is-definitely-long-enough-123',
     JWT_EXPIRES_IN: '1h',
+    AUTH_RATE_LIMIT: '10000', // tests sign up many users; security.test.js checks the real limit
+    ...overrides,
   });
   await mongoose.connect(env.mongoUri);
 

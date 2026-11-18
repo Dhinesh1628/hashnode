@@ -1,20 +1,12 @@
 // The one place the app talks to the API. Every request goes through api(),
-// so the token header and error handling are written once.
+// so headers and error handling are written once.
+//
+// Login state lives in an httpOnly cookie that the API sets. The browser
+// sends it automatically, and this code never sees the token, so a script
+// injected into the page couldn't steal it either.
 
-const TOKEN_KEY = 'hashnode.token';
-
-// localStorage can throw (private mode, blocked storage), so wrap every access.
-export const tokenStore = {
-  get() {
-    try { return localStorage.getItem(TOKEN_KEY); } catch { return null; }
-  },
-  set(token) {
-    try { localStorage.setItem(TOKEN_KEY, token); } catch { /* stays logged in for this tab only */ }
-  },
-  clear() {
-    try { localStorage.removeItem(TOKEN_KEY); } catch { /* nothing to clear */ }
-  },
-};
+// Earlier versions kept the token in localStorage. Remove any leftover copy.
+try { localStorage.removeItem('hashnode.token'); } catch { /* storage blocked: nothing to clean */ }
 
 // Mirrors the API's error shape: { error: { message, fields } }.
 // status 0 means the request never reached the API.
@@ -26,7 +18,7 @@ export class ApiError extends Error {
   }
 }
 
-// Called when a logged-in request gets 401 (expired or revoked session).
+// Called when a request gets 401 (session expired or logged out elsewhere).
 let onUnauthorized = null;
 export function setUnauthorizedHandler(handler) {
   onUnauthorized = handler;
@@ -38,14 +30,18 @@ export async function api(path, { method = 'GET', body, query } = {}) {
     if (value !== undefined && value !== null && value !== '') url.searchParams.set(key, value);
   }
 
-  const token = tokenStore.get();
-  const headers = {};
+  // The API requires this header on cookie-authenticated changes (CSRF protection).
+  const headers = { 'X-Requested-With': 'fetch' };
   if (body !== undefined) headers['Content-Type'] = 'application/json';
-  if (token) headers.Authorization = `Bearer ${token}`;
 
   let res;
   try {
-    res = await fetch(url, { method, headers, body: body === undefined ? undefined : JSON.stringify(body) });
+    res = await fetch(url, {
+      method,
+      headers,
+      credentials: 'same-origin', // send the session cookie
+      body: body === undefined ? undefined : JSON.stringify(body),
+    });
   } catch {
     throw new ApiError(0, "Can't reach the server. Check your connection and try again.");
   }
@@ -59,7 +55,7 @@ export async function api(path, { method = 'GET', body, query } = {}) {
       throw new ApiError(0, "Can't reach the API. Is the server running?");
     }
     const error = new ApiError(res.status, data?.error?.message || `Request failed (${res.status})`, data?.error?.fields);
-    if (res.status === 401 && token && onUnauthorized) onUnauthorized(error);
+    if (res.status === 401 && onUnauthorized) onUnauthorized(error);
     throw error;
   }
   return data;

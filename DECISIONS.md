@@ -174,7 +174,7 @@ user moved on, and drops old data when the inputs change, so one post never
 flashes on another post's page. `setData` lets the like button update the
 count straight from the API's answer without reloading the page.
 
-**The token is stored in localStorage.**
+**The token is stored in localStorage.** *(Replaced in Phase 5 by an httpOnly cookie.)*
 It survives a page refresh, and every read is wrapped in try/catch because
 storage can be blocked. The trade-off: any script on the page could read it.
 That's why the Markdown renderer must never run HTML (next point).
@@ -200,3 +200,60 @@ as a banner on the form or page. A 404 shows a proper "not found" page.
 **Plain CSS with variables, light and dark.**
 One stylesheet, colors as CSS variables, with a dark version under
 `prefers-color-scheme`. Works down to phone width without horizontal scrolling.
+
+## Phase 5: production and deployment
+
+**One Render service serves both the API and the website.**
+In production Express serves `client/dist` and returns `index.html` for page
+URLs, so React Router handles them. One URL, one deploy, and because the site
+and API share an origin, cookies and requests need no CORS setup. The
+trade-off is that the free plan sleeps when idle (first visit ~30 s).
+
+**The login token moved to an httpOnly cookie.**
+JavaScript can't read an httpOnly cookie, so even an injected script couldn't
+steal the session. The cookie is `Secure` in production (HTTPS only),
+`SameSite=Lax`, limited to `/api`, and expires with the token. Login still
+returns the token in the body, and the API still accepts `Bearer` headers, so
+Postman and scripts work unchanged.
+
+**CSRF protection: SameSite plus a required header.**
+Browsers attach cookies automatically, which is what CSRF abuses. `SameSite=Lax`
+stops other sites' POSTs carrying the cookie. As a second lock, any
+cookie-authenticated change must send `X-Requested-With`. Another site can't
+add that header without a CORS preflight, and the API refuses those.
+Bearer requests skip the check, since browsers never add that header by themselves.
+
+**`/api/auth/session` next to `/api/auth/me`.**
+The website asks "who am I?" on every page load. For a visitor, `/me` correctly
+answers 401, which shows as a red error in the browser console on every visit.
+`/session` answers 200 with `user: null` instead. `/me` keeps its 401 for API clients.
+
+**Rate limiting on login and sign-up.**
+20 attempts per IP per 15 minutes (configurable) slows down password guessing
+and mass sign-ups. With `trust proxy` set to Render's single proxy, the limit
+applies to the real visitor's IP, not the proxy's.
+
+**Security headers via helmet, with one deliberate exception.**
+The Content-Security-Policy only allows scripts from the site itself, but
+images from any `https:` address, because cover images and avatars are links.
+
+**Caching: hashed assets forever, `index.html` never.**
+Vite names files by their content (`index-Ab12.js`), so they're cached for a
+year. `index.html` is always re-checked, so a new deploy shows up immediately.
+
+**Express's own errors use the API's error shape.**
+A missing asset is a clean 404 and a body over 1 MB is a 413, both as
+`{ error: { message } }`, instead of being reported as a 500 server bug.
+
+**The health check checks the database.**
+`/api/health` returns 503 if MongoDB isn't connected. Render waits for 200
+before switching traffic to a new deploy, so a deploy that can't reach the
+database never replaces a working one.
+
+**The deploy was rehearsed before writing the guide.**
+A clean copy of the repo was built with `NODE_ENV=production npm run build`
+(the exact Render command), started with `npm start`, and used in a browser:
+sign up, reload, publish with an external cover image, log out, log back in.
+That caught one real issue: with `NODE_ENV=production`, npm skips dev
+dependencies, which would have left Vite uninstalled. Hence `--include=dev`
+for the client install.

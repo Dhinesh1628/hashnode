@@ -3,7 +3,7 @@
 A blogging platform for developers: write in Markdown, publish, tag, and
 read other people's posts. MERN stack, built solo over three weeks.
 
-> Status: **Phase 4 of 5 — React frontend** (Vite + React client for the whole API)
+> Status: **Phase 5 of 5 — production ready.** Deploy guide: [DEPLOY.md](DEPLOY.md)
 
 ## Run it locally
 
@@ -62,32 +62,44 @@ so there's nothing else to configure. Set `API_URL` to use another API address.
 | GET | `/api/health` | Public | — |
 | POST | `/api/auth/register` | Public | `{ name, email, password }` |
 | POST | `/api/auth/login` | Public | `{ email, password }` |
-| GET | `/api/auth/me` | Bearer token | — |
+| GET | `/api/auth/me` | Logged in | — (401 if not) |
+| GET | `/api/auth/session` | Public | — returns `{ user }`, `null` if not logged in |
+| POST | `/api/auth/logout` | Public | — clears the session cookie |
 | GET | `/api/posts` | Public | query: `page`, `limit` (max 50), `tag`, `author`, `q` |
-| GET | `/api/posts/me` | Bearer token | query: `page`, `limit`, `status` (`draft`/`published`) |
-| GET | `/api/posts/following` | Bearer token | query: `page`, `limit` — posts from people I follow |
+| GET | `/api/posts/me` | Logged in | query: `page`, `limit`, `status` (`draft`/`published`) |
+| GET | `/api/posts/following` | Logged in | query: `page`, `limit` — posts from people I follow |
 | GET | `/api/posts/:slug` | Public (drafts: author only) | — returns `{ post, viewer: { liked, bookmarked, followingAuthor } }` |
-| POST | `/api/posts` | Bearer token | `{ title, content, tags?, coverImage?, status? }` |
+| POST | `/api/posts` | Logged in | `{ title, content, tags?, coverImage?, status? }` |
 | PATCH | `/api/posts/:id` | Owner only | any of the fields above |
 | DELETE | `/api/posts/:id` | Owner only | — |
 | GET | `/api/tags` | Public | — (tags with published-post counts) |
 | GET | `/api/tags/:slug` | Public | — |
-| POST / DELETE | `/api/posts/:id/like` | Bearer token | — returns `{ liked, likeCount }` |
-| POST / DELETE | `/api/posts/:id/bookmark` | Bearer token | — returns `{ bookmarked }` |
+| POST / DELETE | `/api/posts/:id/like` | Logged in | — returns `{ liked, likeCount }` |
+| POST / DELETE | `/api/posts/:id/bookmark` | Logged in | — returns `{ bookmarked }` |
 | GET | `/api/posts/:id/comments` | Public | query: `page`, `limit` (max 100) |
-| POST | `/api/posts/:id/comments` | Bearer token | `{ content }` |
+| POST | `/api/posts/:id/comments` | Logged in | `{ content }` |
 | PATCH | `/api/comments/:id` | Comment writer | `{ content }` |
 | DELETE | `/api/comments/:id` | Comment writer or post author | — |
 | GET | `/api/users/:id` | Public | — returns `{ user, stats, isFollowing }` |
-| PATCH | `/api/users/me` | Bearer token | `{ name?, bio?, avatarUrl? }` |
-| GET | `/api/users/me/bookmarks` | Bearer token | query: `page`, `limit` |
-| POST / DELETE | `/api/users/:id/follow` | Bearer token | — returns `{ following, followerCount }` |
+| PATCH | `/api/users/me` | Logged in | `{ name?, bio?, avatarUrl? }` |
+| GET | `/api/users/me/bookmarks` | Logged in | query: `page`, `limit` |
+| POST / DELETE | `/api/users/:id/follow` | Logged in | — returns `{ following, followerCount }` |
 | GET | `/api/users/:id/followers` | Public | query: `page`, `limit` |
 | GET | `/api/users/:id/following` | Public | query: `page`, `limit` |
 
 Lists return `{ posts, pagination: { page, limit, total, totalPages } }`.
 
+**Logged in** means either the `hn_token` session cookie (set by login/register,
+used by the website) or an `Authorization: Bearer <token>` header (Postman, scripts).
+Cookie requests that change data must also send `X-Requested-With` (CSRF protection).
+
 Errors always look like `{ "error": { "message": "...", "fields": { ... } } }`.
+
+## Deploy
+
+`npm run build` and `npm start` in the repo root build and run the production
+app: Express serves both the API and the built website on one port.
+Step-by-step Render guide: **[DEPLOY.md](DEPLOY.md)**.
 
 ## Project layout
 

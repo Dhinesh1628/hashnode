@@ -23,6 +23,12 @@ export function errorHandler(err, _req, res, _next) {
     error = HttpError.conflict(`That ${field} is already taken`, { [field]: 'Already taken' });
   } else if (err?.type === 'entity.parse.failed') {
     error = HttpError.badRequest('Request body is not valid JSON');
+  } else if (err?.code === 'ENOENT' && err.status === 404) {
+    // A file under /assets that doesn't exist (e.g. an old cached page asking for a replaced file).
+    error = HttpError.notFound();
+  } else if (err?.expose && err.status >= 400 && err.status < 500) {
+    // Express's own client errors, e.g. a body over 1 MB (413).
+    error = new HttpError(err.status, err.message);
   }
 
   if (!(error instanceof HttpError)) {
