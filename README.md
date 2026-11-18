@@ -51,7 +51,7 @@ so there's nothing else to configure. Set `API_URL` to use another API address.
 | `/profile/:id` | Profile: posts, followers, following | — |
 | `/login`, `/register` | Log in, sign up | — |
 | `/editor/new`, `/editor/:id` | Editor: Markdown + live preview, tag picker, draft or publish | ✔ |
-| `/dashboard` | My posts, drafts included; edit and delete | ✔ |
+| `/dashboard` | Author dashboard: stats, searchable/sortable post table, drafts to finish, recent comments | ✔ |
 | `/bookmarks` | Saved posts | ✔ |
 | `/settings` | Edit name, bio, avatar | ✔ |
 
@@ -66,7 +66,7 @@ so there's nothing else to configure. Set `API_URL` to use another API address.
 | GET | `/api/auth/session` | Public | — returns `{ user }`, `null` if not logged in |
 | POST | `/api/auth/logout` | Public | — clears the session cookie |
 | GET | `/api/posts` | Public | query: `search` (or `q`), `tag`, `author`, `page`, `limit` (max 50) |
-| GET | `/api/posts/mine` | Logged in | query: `page`, `limit`, `status` (`draft`/`published`). `/api/posts/me` also works |
+| GET | `/api/posts/mine` | Logged in | query: `status` (`draft`/`published`), `search` (title), `sort` (`newest`/`likes`/`comments`), `page`, `limit`. `/api/posts/me` also works |
 | GET | `/api/posts/following` | Logged in | query: `page`, `limit` — posts from people I follow |
 | GET | `/api/posts/:slug` | Public (drafts: author only); also accepts the post id | — returns `{ post, viewer: { liked, bookmarked, followingAuthor } }` |
 | POST | `/api/posts` | Logged in | `{ title, content, tags?, coverImage?, status? }` |
@@ -84,6 +84,7 @@ so there's nothing else to configure. Set `API_URL` to use another API address.
 | GET | `/api/users/:id` | Public | — returns `{ user, posts, stats, isFollowing }` (newest 10 published posts) |
 | PUT / PATCH | `/api/users/me` | Logged in | `{ name?, bio?, avatarUrl? }` |
 | GET | `/api/users/me/bookmarks` | Logged in | query: `page`, `limit` |
+| GET | `/api/users/me/dashboard` | Logged in | — returns `{ stats, drafts, recentComments, newComments }` for the author dashboard |
 | POST / DELETE | `/api/users/:id/follow` | Logged in | — returns `{ following, followerCount }` |
 | GET | `/api/users/:id/followers` | Public | query: `page`, `limit` |
 | GET | `/api/users/:id/following` | Public | query: `page`, `limit` |

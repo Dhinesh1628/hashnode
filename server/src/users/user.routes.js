@@ -11,6 +11,7 @@ export function userRoutes(env) {
   router.put('/me', auth, users.updateMe);   // PRD verb
   router.patch('/me', auth, users.updateMe);
   router.get('/me/bookmarks', auth, reactions.myBookmarks);
+  router.get('/me/dashboard', auth, users.dashboard);
 
   router.get('/:id', optionalAuth(env), users.profile);
   router.get('/:id/followers', users.followers);

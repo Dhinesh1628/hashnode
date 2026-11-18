@@ -1,6 +1,10 @@
 import { getProfile, updateMe, followUser, unfollowUser, listConnections } from './user.service.js';
+import { getDashboard } from './dashboard.service.js';
 
 export const userController = {
+  async dashboard(req, res) {
+    res.json(await getDashboard(req.user));
+  },
   async profile(req, res) {
     res.json(await getProfile(req.params.id, req.user));
   },

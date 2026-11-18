@@ -151,7 +151,14 @@ export async function listPublishedPosts(query = {}) {
   return findPublished(filter, paging);
 }
 
-// The author's dashboard: their own posts, drafts included. ?status= narrows it.
+const MY_POST_SORTS = {
+  newest: { updatedAt: -1, _id: -1 },
+  likes: { likeCount: -1, updatedAt: -1, _id: -1 },
+  comments: { commentCount: -1, updatedAt: -1, _id: -1 },
+};
+
+// The author's dashboard: their own posts, drafts included.
+// ?status=draft|published  ?search=<title text>  ?sort=newest|likes|comments
 export async function listMyPosts(user, query = {}) {
   const paging = readPagination(query);
   const filter = { author: user._id };
@@ -161,10 +168,13 @@ export async function listMyPosts(user, query = {}) {
     }
     filter.status = query.status;
   }
+  const search = String(query.search ?? '').trim().slice(0, 100);
+  if (search) filter.title = new RegExp(escapeRegex(search), 'i');
+  const sort = MY_POST_SORTS[query.sort] ?? MY_POST_SORTS.newest; // unknown values fall back
 
   const [posts, total] = await Promise.all([
     Post.find(filter)
-      .sort({ updatedAt: -1, _id: -1 })
+      .sort(sort)
       .skip(paging.skip).limit(paging.limit)
       .select('-content')
       .populate(POPULATE),

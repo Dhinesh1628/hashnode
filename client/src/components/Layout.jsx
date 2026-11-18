@@ -1,6 +1,7 @@
 import { useEffect, useRef } from 'react';
 import { Link, NavLink, Outlet, useLocation, useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../auth/useAuth.js';
+import { useDismiss } from '../lib/useDismiss.js';
 import { Avatar, Loading } from './ui.jsx';
 
 function SearchBox() {
@@ -23,19 +24,7 @@ function SearchBox() {
 
 function UserMenu({ user, logout }) {
   const menu = useRef(null);
-  const close = () => { if (menu.current) menu.current.open = false; };
-
-  // Close when clicking anywhere outside the menu, or pressing Escape.
-  useEffect(() => {
-    const onPointerDown = (e) => { if (menu.current && !menu.current.contains(e.target)) close(); };
-    const onKeyDown = (e) => { if (e.key === 'Escape') close(); };
-    document.addEventListener('pointerdown', onPointerDown);
-    document.addEventListener('keydown', onKeyDown);
-    return () => {
-      document.removeEventListener('pointerdown', onPointerDown);
-      document.removeEventListener('keydown', onKeyDown);
-    };
-  }, []);
+  const close = useDismiss(menu);
 
   return (
     <details className="user-menu" ref={menu}>

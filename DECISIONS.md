@@ -299,3 +299,43 @@ describes (stay logged in across refreshes, validated on load) is met, more
 securely: an httpOnly cookie can't be read by scripts. The API still accepts
 `Authorization: Bearer` tokens exactly as section 5 specifies, so Postman
 testing follows the PRD unchanged. See Phase 5 above.
+
+## Dashboard redesign
+
+**Designed first, built second.**
+A mockup was agreed before any code: greeting, five stat cards, a posts
+table, and a sidebar with drafts to finish and recent comments. The build
+matched it, then was checked in light mode, dark mode and at 375 px.
+
+**Two colors, each with one job.**
+Blue (`--primary`) means "you can click this" or "this is live": buttons,
+links, published posts. Amber (`--attention`) means "this needs you":
+drafts and new comments. Everything else is neutral. Green badges were
+replaced with blue so the rule holds across the whole site; red stays only on
+Delete, because destructive actions should look dangerous.
+
+**Page background.**
+The page is a cool blue-gray (`#f4f6fb`) so white cards stand out, and the
+dashboard has a soft blue band behind the greeting that the stat cards
+overlap. The band is painted full-width with a box-shadow plus clip-path, so
+it never causes sideways scrolling.
+
+**One request for the whole dashboard.**
+`GET /api/users/me/dashboard` returns the stats, drafts and recent comments
+together, using aggregations instead of loading every post. Recent comments
+leave out the author's own replies and comments on posts that went back to
+draft. "New" means the last 7 days, which needs no read/unread tracking.
+
+**The table keeps its state in the URL.**
+Filter, search and sort live in `?status=&search=&sort=`, so refreshing or
+sharing the link keeps the view. Search waits 300 ms after typing stops
+before asking the server.
+
+**Rare actions go in a ⋯ menu.**
+Edit is one click; View and Delete sit in a menu, so a delete button isn't
+next to every row. Delete still asks for confirmation (a PRD requirement).
+
+**A mobile bug the screenshot check caught.**
+On phones the one-column grid was `1fr`, which can't shrink below its
+content, so long titles widened the page and the phone zoomed out.
+`minmax(0, 1fr)` lets titles truncate instead.
