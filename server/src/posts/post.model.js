@@ -16,6 +16,10 @@ const postSchema = new mongoose.Schema(
     publishedAt: { type: Date, default: null },
     author: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
     tags: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Tag' }],
+    // Shown on every feed card, so they're stored instead of counted per
+    // request. They only change when a Like/Comment is really added or removed.
+    likeCount: { type: Number, default: 0, min: 0 },
+    commentCount: { type: Number, default: 0, min: 0 },
   },
   { timestamps: true, toJSON: { versionKey: false } },
 );

@@ -1,17 +1,21 @@
 import mongoose from 'mongoose';
 import { Post } from './post.model.js';
 import { Tag } from '../tags/tag.model.js';
+import { PUBLIC_USER_FIELDS } from '../users/user.model.js';
+import { Follow } from '../users/follow.model.js';
+import { Like } from '../reactions/like.model.js';
+import { Bookmark } from '../reactions/bookmark.model.js';
+import { Comment } from '../comments/comment.model.js';
 import { HttpError } from '../lib/http-error.js';
 import { check } from '../lib/check.js';
 import { escapeRegex } from '../lib/escape-regex.js';
 import { readPagination, pageInfo } from '../lib/pagination.js';
 
-// What other people may see about an author. Email is deliberately missing.
-const AUTHOR_PUBLIC = 'name avatarUrl bio';
-const POPULATE = [
-  { path: 'author', select: AUTHOR_PUBLIC },
+export const POST_POPULATE = [
+  { path: 'author', select: PUBLIC_USER_FIELDS },
   { path: 'tags', select: 'name slug' },
 ];
+const POPULATE = POST_POPULATE;
 const STATUSES = ['draft', 'published'];
 const HTTP_URL = /^https?:\/\/\S+$/i;
 
@@ -81,9 +85,44 @@ export async function updatePost(user, id, body) {
   return post.populate(POPULATE);
 }
 
+// Deleting a post also deletes its likes, bookmarks and comments,
+// so nothing is left pointing at a post that no longer exists.
 export async function deletePost(user, id) {
   const post = await findOwnPost(user, id);
   await post.deleteOne();
+  await Promise.all([
+    Like.deleteMany({ post: post._id }),
+    Bookmark.deleteMany({ post: post._id }),
+    Comment.deleteMany({ post: post._id }),
+  ]);
+}
+
+// For likes, bookmarks and comments: they only work on posts the public
+// can see. A draft behaves exactly as if it didn't exist.
+export async function findPublishedPostById(id) {
+  if (!mongoose.isValidObjectId(id)) throw HttpError.notFound('Post not found');
+  const post = await Post.findById(id).published();
+  if (!post) throw HttpError.notFound('Post not found');
+  return post;
+}
+
+// One page of published posts matching `filter`, newest first.
+async function findPublished(filter, paging) {
+  const [posts, total] = await Promise.all([
+    Post.find(filter).published()
+      .sort({ publishedAt: -1, _id: -1 })
+      .skip(paging.skip).limit(paging.limit)
+      .select('-content') // lists show the excerpt; the full text is only on the post page
+      .populate(POPULATE),
+    Post.countDocuments(filter).published(),
+  ]);
+  return { posts, pagination: pageInfo(paging, total) };
+}
+
+// Posts from the authors I follow.
+export async function listFollowingFeed(user, query = {}) {
+  const authorIds = await Follow.find({ follower: user._id }).distinct('following');
+  return findPublished({ author: { $in: authorIds } }, readPagination(query));
 }
 
 // Public feed: published posts only, newest first.
@@ -109,15 +148,7 @@ export async function listPublishedPosts(query = {}) {
     filter.$or = [{ title: pattern }, { content: pattern }];
   }
 
-  const [posts, total] = await Promise.all([
-    Post.find(filter).published()
-      .sort({ publishedAt: -1, _id: -1 })
-      .skip(paging.skip).limit(paging.limit)
-      .select('-content') // lists show the excerpt; the full text is only on the post page
-      .populate(POPULATE),
-    Post.countDocuments(filter).published(),
-  ]);
-  return { posts, pagination: pageInfo(paging, total) };
+  return findPublished(filter, paging);
 }
 
 // The author's dashboard: their own posts, drafts included. ?status= narrows it.

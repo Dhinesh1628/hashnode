@@ -4,6 +4,8 @@ import helmet from 'helmet';
 import { authRoutes } from './auth/auth.routes.js';
 import { postRoutes } from './posts/post.routes.js';
 import { tagRoutes } from './tags/tag.routes.js';
+import { userRoutes } from './users/user.routes.js';
+import { commentRoutes } from './comments/comment.routes.js';
 import { notFoundRoute, errorHandler } from './middleware/error-handler.js';
 
 // Building the app in a function (instead of at import time) lets the
@@ -19,6 +21,8 @@ export function createApp(env) {
   app.use('/api/auth', authRoutes(env));
   app.use('/api/posts', postRoutes(env));
   app.use('/api/tags', tagRoutes());
+  app.use('/api/users', userRoutes(env));
+  app.use('/api/comments', commentRoutes(env));
 
   app.use(notFoundRoute);
   app.use(errorHandler);

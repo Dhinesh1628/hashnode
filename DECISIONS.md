@@ -104,3 +104,50 @@ worth an error, but nobody can request the whole database at once.
 
 **Author info in posts never includes email.**
 Posts populate only `name`, `avatarUrl` and `bio` from the author.
+
+## Phase 3: comments, likes, bookmarks, profiles, following
+
+**Likes, bookmarks and follows are their own small collections.**
+One document per (user, post) or (follower, following), with a unique index.
+Arrays of user ids inside a post would grow forever on popular posts, and
+the unique index is what makes "like twice" impossible, even when two
+requests arrive at the same moment (a test fires five at once).
+
+**Like and comment counts are stored on the post.**
+Unlike tag counts, these appear on every feed card, so counting them on each
+request would be slow. They stay correct because the counter only changes
+when a Like or Comment was actually inserted or deleted, and `$inc` is atomic.
+
+**Like, bookmark and follow are safe to repeat.**
+POST adds, DELETE removes, and repeating either changes nothing. A
+double-click or a retried request can't break the count.
+
+**Drafts can't be liked, bookmarked or commented on.**
+They answer 404, the same as everywhere else, so none of these routes can be
+used to discover that a draft exists. A bookmarked post that later becomes a
+draft disappears from the bookmark list.
+
+**Who can delete a comment: its writer, or the post's author.**
+The post author moderates their own post. Editing is writer-only, so nobody
+can put words in someone else's mouth.
+
+**Deleting a post deletes its likes, bookmarks and comments.**
+Nothing is left pointing at a post that no longer exists.
+
+**The post page returns `viewer` state.**
+`{ liked, bookmarked, followingAuthor }` for the logged-in visitor, all
+false for anonymous visitors. The client can draw the buttons correctly
+without three extra requests.
+
+**Profile edits can't change email or password.**
+`PATCH /api/users/me` copies only name, bio and avatarUrl. Changing email or
+password needs the current password and belongs in its own flow.
+
+**Profiles are public but never include email.**
+`PUBLIC_USER_FIELDS` (name, avatarUrl, bio) lives in the User model and is
+used everywhere another person's info is shown: post authors, commenters,
+follower lists.
+
+**Tests rebuild indexes after wiping the database.**
+Dropping the test database also drops indexes, so the "two likes at once"
+test would pass for the wrong reason. `reset()` recreates them.

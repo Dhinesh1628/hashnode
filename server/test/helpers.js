@@ -18,6 +18,9 @@ export async function startTestApp() {
     env,
     async reset() {
       await mongoose.connection.db.dropDatabase();
+      // Dropping the database also drops indexes. Rebuild them so tests
+      // run against the same unique rules as the real database.
+      await Promise.all(mongoose.modelNames().map((name) => mongoose.model(name).createIndexes()));
     },
     async stop() {
       await mongoose.disconnect();

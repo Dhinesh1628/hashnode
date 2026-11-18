@@ -3,6 +3,9 @@ import bcrypt from 'bcryptjs';
 
 const SALT_ROUNDS = 12;
 
+// What other people may see about a user. Email is deliberately missing.
+export const PUBLIC_USER_FIELDS = 'name avatarUrl bio';
+
 const userSchema = new mongoose.Schema(
   {
     name: { type: String, required: true, trim: true, maxlength: 60 },
