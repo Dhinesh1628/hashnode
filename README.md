@@ -3,7 +3,9 @@
 A blogging platform for developers: write in Markdown, publish, tag, and
 read other people's posts. MERN stack, built solo over three weeks.
 
-> Status: **Phase 5 of 5 — production ready.** Deploy guide: [DEPLOY.md](DEPLOY.md)
+> **Live demo: https://hashnode.onrender.com** (free hosting: the first visit after a quiet spell can take about 30 seconds to wake up)
+>
+> Status: **all 5 phases complete.** Deploy guide: [DEPLOY.md](DEPLOY.md) · Design and technical decisions: [DECISIONS.md](DECISIONS.md)
 
 ## Run it locally
 
